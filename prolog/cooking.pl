@@ -87,7 +87,7 @@ chr_reset(_) <=> true.
 
 % set up player if we haven't seen them
 
-init_player(S) <=> \+ get_costume(S, _, _) | costume(S, egg, friedegg).
+init_player(S) <=> \+ costume(S, _, _) | costume(S, egg, shell).
 
 % when I touch the pan I go from shell to fried egg
 touch(S, egg, pan) \ costume(S, egg, shell) <=> costume(S, egg, friedegg).
