@@ -38,7 +38,7 @@ touched(Request) :-
     init_session(S),
     do_in_chr_thread(touch(S, Me, Dest), get_costume(S, Me, Costume)),
     format('Access-Control-Allow-Origin: *~n'),
-    format('Content-type: text/plain~n~n~w~n', [Costume]).
+    format('Content-type: text/plain~n~n~w', [Costume]).
 
 
 :- http_handler('/costume', respond_current_costume , []).
@@ -86,8 +86,8 @@ chr_reset(S) \ get_costume(S, _, _) <=> true.
 chr_reset(_) <=> true.
 
 % set up player if we haven't seen them
-
-init_player(S) <=> \+ costume(S, _, _) | costume(S, egg, shell).
+% get_costume checks for costume, not inserts
+init_player(S) <=> \+ get_costume(S, _, _) | costume(S, egg, shell).
 
 % when I touch the pan I go from shell to fried egg
 touch(S, egg, pan) \ costume(S, egg, shell) <=> costume(S, egg, friedegg).
