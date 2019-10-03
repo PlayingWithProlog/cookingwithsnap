@@ -5,6 +5,7 @@ This is a demo of
   * CHR
   * Serving CHR, complicated by CHR's need to run in a single thread
   * interfacing Snap! with Prolog
+  * dealing with Snap! not liking sessions
 
 ## Install (assumes you have a recent SWI-Prolog)
 

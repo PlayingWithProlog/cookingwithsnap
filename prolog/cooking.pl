@@ -20,10 +20,11 @@ server(Port) :-
                 ]).
 
 :- chr_constraint
-    chr_reset/0,
-    touch/2,
-    costume/2,
-    get_costume/2.
+    chr_reset/1,
+    touch/3,
+    costume/3,
+    get_costume/3,
+    init_player/1.
 
 :- http_handler('/touch', touched , []).
 
@@ -31,9 +32,11 @@ touched(Request) :-
     http_parameters(Request,
                 [
                     me(Me, []),
-                    dest(Dest, [])
+                    dest(Dest, []),
+                    sess(S, [integer])
                 ]),
-    do_in_chr_thread(touch(Me, Dest), get_costume(Me, Costume)),
+    init_session(S),
+    do_in_chr_thread(touch(S, Me, Dest), get_costume(S, Me, Costume)),
     format('Access-Control-Allow-Origin: *~n'),
     format('Content-type: text/plain~n~n~w~n', [Costume]).
 
@@ -43,20 +46,33 @@ touched(Request) :-
 respond_current_costume(Request) :-
     http_parameters(Request,
                 [
-                    me(Me, [])
+                    me(Me, []),
+                    sess(S, [integer])
                 ]),
-    do_in_chr_thread(true, get_costume(Me, Costume)),
+    init_session(S),
+    do_in_chr_thread(true, get_costume(S, Me, Costume)),
     format('Access-Control-Allow-Origin: *~n'),
     format('Content-type: text/plain~n~n~w', [Costume]).
 
 
 :- http_handler('/reset', do_reset , []).
 
-do_reset(_Request) :-
-    do_in_chr_thread(chr_reset, get_dummy(_)),
-    do_in_chr_thread(costume(egg, shell), get_dummy(_)),
+do_reset(Request) :-
+    http_parameters(Request,
+                [
+                    sess(S, [integer])
+                ]),
+    init_session(S),
+    reset_session(S),
     format('Access-Control-Allow-Origin: *~n'),
     format('Content-type: text/plain~n~nOK').
+
+reset_session(S) :-
+    do_in_chr_thread(chr_reset(S), get_dummy(_)),
+    do_in_chr_thread(costume(S, egg, shell), get_dummy(_)).
+
+init_session(S) :-
+    do_in_chr_thread(init_player(S), get_dummy(_)).
 
 		 /*******************************
 		 *          Game Logic          *
@@ -64,17 +80,21 @@ do_reset(_Request) :-
 
 get_dummy(ok).
 
-chr_reset \ costume(_, _) <=> true.
-chr_reset \ touch(_, _) <=> true.
-chr_reset \ get_costume(_, _) <=> true.
-chr_reset <=> true.
+chr_reset(S) \ costume(S, _, _) <=> true.
+chr_reset(S) \ touch(S, _, _) <=> true.
+chr_reset(S) \ get_costume(S, _, _) <=> true.
+chr_reset(_) <=> true.
+
+% set up player if we haven't seen them
+
+init_player(S) <=> \+ get_costume(S, _, _) | costume(S, egg, friedegg).
 
 % when I touch the pan I go from shell to fried egg
-touch(egg, pan) \ costume(egg, shell) <=> costume(egg, friedegg).
+touch(S, egg, pan) \ costume(S, egg, shell) <=> costume(S, egg, friedegg).
 
 % add get_costume with Y unbound to retrieve X's costume
-costume(X, Current) \ get_costume(X, Is) <=> Is = Current.
-get_costume(_, _) <=> fail.
+costume(S, X, Current) \ get_costume(S, X, Is) <=> Is = Current.
+get_costume(_, _, _) <=> fail.
 
 		 /*******************************
 		 * Debug help                   *
@@ -136,7 +156,7 @@ polling_sub :-
 %   was made.
 %
 % eg to touch the egg to the pan and then get the egg's costume do
-% do_in_chr_thread(touch(egg, pan), get_costume(egg, Costume))
+% do_in_chr_thread(touch(S, egg, pan), get_costume(S, egg, Costume))
 %
 % Note that these are effectively called in once/1
 %
