@@ -87,7 +87,12 @@ chr_reset(_) <=> true.
 
 % set up player if we haven't seen them
 % get_costume checks for costume, not inserts
-init_player(S) <=> \+ get_costume(S, _, _) | costume(S, egg, shell).
+
+% idempotic pattern
+% if we've already got a costume we inited already
+% only add costume if we didn't have one
+costume(S, _, _) \ init_player(S) <=> true.
+init_player(S) <=> costume(S, egg, shell).
 
 % when I touch the pan I go from shell to fried egg
 touch(S, egg, pan) \ costume(S, egg, shell) <=> costume(S, egg, friedegg).
