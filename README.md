@@ -3,7 +3,7 @@
 This is a demo of
  
   * CHR
-  * Serving CHR, complicated by CHR's need
+  * Serving CHR, complicated by CHR's need to run in a single thread
   * interfacing Snap! with Prolog
 
 ## Install (assumes you have a recent SWI-Prolog)
@@ -27,6 +27,17 @@ https://github.com/jmoenig/Snap/releases/tag/v5.1.0
 or by drag and drop onto Snap UI.
 
 6. click the green flag
+
+7. Drag  ingredients (for now just the egg) into the pan
+
+## Architecture
+
+Snap! running in the browser sends HTTP requests to a SWI-Prolog server. The server formulates a pair of goals. The action goal to initiate change, and a return goal
+whose last argument is bound with the information to be returned to Snap!
+
+These are passed via message queues to a dedicated thread that handles the CHR productions.
+
+The result is passed back via another message queue and bound to the last argument.
 
 ## Derived from
 
