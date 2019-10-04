@@ -86,8 +86,6 @@ chr_reset(S) \ get_costume(S, _, _) <=> true.
 chr_reset(_) <=> true.
 
 % set up player if we haven't seen them
-% get_costume checks for costume, not inserts
-
 % idempotic pattern
 % if we've already got a costume we inited already
 % only add costume if we didn't have one
